@@ -14,7 +14,7 @@ class RoleSeeder extends Seeder
      */
     public function run(): void
     {
-        // Rol especial (Shield lo usa)
+        // Special role (Filament Shield)
         Role::create([
             'name' => 'super_admin',
             'guard_name' => 'web',
