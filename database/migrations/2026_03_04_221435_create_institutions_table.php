@@ -14,14 +14,16 @@ return new class extends Migration
         Schema::create('institutions', function (Blueprint $table) {
             $table->id();
             $table->string('name', 200);
-            $table->string('short_name', 50)->nullable(); // Sigla
+            $table->string('slogan', 100)->nullable();
+            $table->string('institution_code', 50)->unique()->nullable();
             $table->text('description')->nullable();
             $table->text('address')->nullable();
-            $table->enum('institution_type', ['public', 'private', 'other'])->default('other');
+            $table->string('postal_code', 20)->nullable();
+            $table->enum('institution_type', ['public', 'private'])->default('public');
             $table->string('logo', 255)->nullable();      // Ruta
             $table->string('favicon', 255)->nullable();   // Ruta
             $table->string('website', 255)->nullable();
-            $table->string('email', 150)->nullable();
+            $table->string('email', 150)->unique()->nullable();
             $table->string('phone', 20)->nullable();
             
             $table->string('primary_color', 7)->default('#3b82f6');
@@ -38,6 +40,12 @@ return new class extends Migration
                 ->on('provinces')
                 ->onDelete('set null');
 
+            $table->unsignedBigInteger('country_id')->nullable();
+            $table->foreign('country_id')
+                ->references('id')
+                ->on('countries')
+                ->onDelete('set null');
+            
             $table->timestamps();
         });
     }
