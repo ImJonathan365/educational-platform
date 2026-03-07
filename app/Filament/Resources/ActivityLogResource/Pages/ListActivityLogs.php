@@ -16,7 +16,10 @@ class ListActivityLogs extends ListRecords
 {
     protected static string $resource = ActivityLogResource::class;
 
-    protected static ?string $title = 'Activity Log';
+    public function getTitle(): string
+    {
+        return __('Activity Log');
+    }
 
     /**
      * Get the header actions for this page.

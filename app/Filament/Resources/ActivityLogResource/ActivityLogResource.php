@@ -9,6 +9,8 @@ use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\Filter;
+use Filament\Forms\Components\DatePicker;
 use Filament\Schemas\Schema;
 use Filament\Schemas\Components\Section;
 use Filament\Infolists\Components\TextEntry;
@@ -18,6 +20,7 @@ use BackedEnum;
 use App\Filament\Resources\ActivityLogResource\Pages\ListActivityLogs;
 use App\Filament\Resources\ActivityLogResource\Pages\ViewActivityLog;
 use Filament\Actions\ViewAction;
+use Carbon\Carbon;
 
 /**
  * ActivityLogResource
@@ -69,10 +72,10 @@ class ActivityLogResource extends Resource
                 TextColumn::make('description')
                     ->label('Action')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'Institution created' => 'success',
-                        'Institution updated' => 'warning',
-                        'Institution deleted' => 'danger',
+                    ->color(fn (string $state): string => match (true) {
+                        str_contains($state, 'created') => 'success',
+                        str_contains($state, 'updated') => 'warning',
+                        str_contains($state, 'deleted') => 'danger',
                         default => 'gray',
                     })
                     ->sortable()
@@ -130,6 +133,8 @@ class ActivityLogResource extends Resource
                     ->label('Model')
                     ->options([
                         'App\\Models\\Institution' => 'Institution',
+                        'App\\Models\\Country' => 'Country',
+                        'App\\Models\\Province' => 'Province',
                     ]),
 
                 SelectFilter::make('event')
@@ -139,6 +144,38 @@ class ActivityLogResource extends Resource
                         'updated' => 'Updated',
                         'deleted' => 'Deleted',
                     ]),
+
+                Filter::make('created_at')
+                    ->form([
+                        DatePicker::make('created_from')
+                            ->label(__('Date From')),
+                        DatePicker::make('created_until')
+                            ->label(__('Date To')),
+                    ])
+                    ->query(function ($query, array $data) {
+                        return $query
+                            ->when(
+                                $data['created_from'],
+                                fn ($query, $date) => $query->whereDate('created_at', '>=', $date)
+                            )
+                            ->when(
+                                $data['created_until'],
+                                fn ($query, $date) => $query->whereDate('created_at', '<=', $date)
+                            );
+                    })
+                    ->indicateUsing(function (array $data): array {
+                        $indicators = [];
+
+                        if ($data['created_from'] ?? null) {
+                            $indicators[] = __('From: ') . Carbon::parse($data['created_from'])->format('Y-m-d');
+                        }
+
+                        if ($data['created_until'] ?? null) {
+                            $indicators[] = __('To: ') . Carbon::parse($data['created_until'])->format('Y-m-d');
+                        }
+
+                        return $indicators;
+                    }),
             ])
             ->actions([
                 ViewAction::make(),
@@ -165,10 +202,10 @@ class ActivityLogResource extends Resource
                         TextEntry::make('description')
                             ->label('Description')
                             ->badge()
-                            ->color(fn (string $state): string => match ($state) {
-                                'Institution created' => 'success',
-                                'Institution updated' => 'warning',
-                                'Institution deleted' => 'danger',
+                            ->color(fn (string $state): string => match (true) {
+                                str_contains($state, 'created') => 'success',
+                                str_contains($state, 'updated') => 'warning',
+                                str_contains($state, 'deleted') => 'danger',
                                 default => 'gray',
                             }),
 
