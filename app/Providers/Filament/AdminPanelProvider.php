@@ -20,19 +20,38 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use App\Http\Middleware\RestrictAdminPanelAccess;
+use App\Helpers\InstitutionHelper;
 
 class AdminPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
     {
-        return $panel
+        $institutionName = InstitutionHelper::name() ?? config('app.name');
+        $logo = InstitutionHelper::logo();
+        $favicon = InstitutionHelper::favicon();
+        $primaryColorHex = InstitutionHelper::primaryColor() ?? '#ffcc00';
+        
+        $primaryColor = Color::hex($primaryColorHex);
+
+        $panelConfig = $panel
             ->default()
             ->id('admin')
             ->path('admin')
             ->login()
+            ->brandName($institutionName)
             ->colors([
-                'primary' => Color::Amber,
-            ])
+                'primary' => $primaryColor,
+            ]);
+
+        if ($logo) {
+            $panelConfig->brandLogo($logo)->brandLogoHeight('3rem');
+        }
+
+        if ($favicon) {
+            $panelConfig->favicon($favicon);
+        }
+
+        return $panelConfig
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([
